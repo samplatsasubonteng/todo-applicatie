@@ -37,23 +37,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Inloggen</title>
-    <link rel="stylesheet" href="css/style.css"> 
+    <title>Aanmelden</title>
+    <link rel="stylesheet" href="css/login.css"> 
 </head>
 <body>
-    <h2>Inloggen</h2>
-    <?php if (!empty($error)) echo "<p style='color: red;'>$error</p>"; ?>
+    <div class="rand">
+        <h2>Aanmelden</h2>
 
-    <form method="post">
-        <label for="email">E-mailadres:</label>
-        <input type="email" name="email" required><br><br>
+        <?php if (!empty($error)) echo "<p class='form__error'>$error</p>"; ?>
+        <?php if (!empty($success)) echo "<p class='success'>$success</p>"; ?>
 
-        <label for="password">Wachtwoord:</label>
-        <input type="password" name="password" required><br><br>
+        <form method="post">
+            <div class="field">
+                <label for="email">E-mailadres:</label>
+                <input type="email" name="email" required>
+            </div>
 
-        <input type="submit" value="Inloggen">
-    </form>
+            <div class="field">
+                <label for="password">Wachtwoord:</label>
+                <input type="password" name="password" required>
+            </div>
 
-    <p>Nog geen account? <a href="register.php">Aanmelden</a></p>
+            <input type="submit" value="Aanmelden">
+        </form>
+
+        <div class="aanmelden">
+           <p>Nog geen account? <a href="register.php">Aanmelden</a></p>
+        </div>
+    </div>
 </body>
 </html>
