@@ -37,12 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Aanmelden</title>
+    <title>Inloggen</title>
     <link rel="stylesheet" href="css/login.css"> 
 </head>
 <body>
     <div class="rand">
-        <h2>Aanmelden</h2>
+        <h2>Inloggen</h2>
 
         <?php if (!empty($error)) echo "<p class='form__error'>$error</p>"; ?>
         <?php if (!empty($success)) echo "<p class='success'>$success</p>"; ?>
