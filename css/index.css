@@ -29,23 +29,37 @@ h2 {
     color: #555;
 }
 
-/* Formulier voor toevoegen */
-form.add-form {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    justify-content: center;
+h3 {
+    margin-top: 30px;
+    color: #333;
 }
 
-input[type="text"] {
-    flex: 1;
+/* Formulieren */
+form.formulier,
+form.zelfGemaakt {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+input[type="text"],
+select.dropdown-lijst {
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 6px;
     font-size: 1rem;
 }
 
-button[type="submit"] {
+/* Select dropdown */
+select.dropdown-lijst {
+    background-color: #fff;
+    color: #333;
+}
+
+/* Knoppen */
+button[type="submit"],
+button {
     background-color: #3498db;
     color: white;
     padding: 10px 16px;
@@ -56,8 +70,20 @@ button[type="submit"] {
     transition: background-color 0.2s ease;
 }
 
-button[type="submit"]:hover {
+button[type="submit"]:hover,
+button:hover {
     background-color: #2980b9;
+}
+
+/* Feedback berichten */
+.success {
+    color: green;
+    font-weight: bold;
+}
+
+.error {
+    color: red;
+    font-weight: bold;
 }
 
 /* Todo-lijst */
@@ -81,45 +107,17 @@ button[type="submit"]:hover {
 }
 
 /* Voltooide taak */
-.item.completed {
+.item.done {
     background-color: #e0e0e0;
     text-decoration: line-through;
     color: #666;
 }
 
-/* Tekst van de todo */
-.item .text {
-    flex: 1;
-    text-align: left;
-}
-
-/* Actieknoppen per item */
-.item form {
-    display: inline;
+/* Actieknoppen bij items */
+.item .acties a {
     margin-left: 10px;
-}
-
-.item button {
-    background-color: #e74c3c;
-    border: none;
-    color: white;
-    padding: 6px 10px;
-    font-size: 0.85rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.item button.complete-btn {
-    background-color: #2ecc71;
-}
-
-.item button.complete-btn:hover {
-    background-color: #27ae60;
-}
-
-.item button.delete-btn:hover {
-    background-color: #c0392b;
+    text-decoration: none;
+    font-size: 1.2rem;
 }
 
 /* Logout */
