@@ -27,14 +27,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Nieuwe taak toevoegen
-    if (isset($_POST['title'], $_POST['lijst_id']) && empty($_POST['submit_lijst'])) {
+    if (isset($_POST['title'], $_POST['lijst_id'], $_POST['priority']) && empty($_POST['submit_lijst'])) {
         $title = trim($_POST['title']);
         $lijstId = (int)$_POST['lijst_id'];
-        if (!empty($title)) {
-            $stmt = $pdo->prepare("INSERT INTO todos (user_id, title, lijst_id) VALUES (:user_id, :title, :lijst_id)");
-            $stmt->execute([':user_id' => $userId, ':title' => $title, ':lijst_id' => $lijstId]);
+        $priority = $_POST['priority'];
+
+        if (!empty($title) && in_array($priority, ['laag', 'gemiddeld', 'hoog'])) {
+            $stmt = $pdo->prepare("INSERT INTO todos (user_id, title, lijst_id, priority) 
+                                   VALUES (:user_id, :title, :lijst_id, :priority)");
+            $stmt->execute([
+                ':user_id' => $userId,
+                ':title' => $title,
+                ':lijst_id' => $lijstId,
+                ':priority' => $priority
+            ]);
         } else {
-            $error = "Titel mag niet leeg zijn.";
+            $error = "Titel en prioriteit zijn verplicht.";
         }
     }
 }
@@ -77,6 +85,7 @@ $todos = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <h3>📝 Nieuwe taak toevoegen</h3>
     <form method="post">
         <input type="text" name="title" placeholder="Wat moet je doen?" required>
+
         <select name="lijst_id" required>
             <option value="">-- Kies een lijst --</option>
             <optgroup label="📁 Standaard lijsten">
@@ -90,6 +99,14 @@ $todos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php endforeach; ?>
             </optgroup>
         </select>
+
+        <select name="priority" required>
+            <option value="">-- Kies prioriteit --</option>
+            <option value="laag">⬇️ Laag</option>
+            <option value="gemiddeld">➡️ Gemiddeld</option>
+            <option value="hoog">⬆️ Hoog</option>
+        </select>
+
         <button class="formulier" type="submit">➕ Taak toevoegen</button>
     </form>
 
@@ -109,6 +126,7 @@ $todos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php foreach ($todos as $todo): ?>
             <li class="item <?= $todo['is_done'] ? 'done' : '' ?>">
                 <?= htmlspecialchars($todo['title']) ?>
+                <strong style="margin-left: 12px;">[<?= htmlspecialchars($todo['priority']) ?>]</strong>
                 <span class="acties">
                     <?php if (!$todo['is_done']): ?>
                         <a href="?done=<?= $todo['id'] ?>" title="Markeer als gedaan">✅</a>
