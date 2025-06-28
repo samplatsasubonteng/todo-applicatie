@@ -9,65 +9,41 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
 $db = new Database();
 $pdo = $db->connect();
-
 $userId = $_SESSION['user_id'];
+
+function insertLijst($pdo, $userId, $naam) {
+    $stmt = $pdo->prepare("INSERT INTO user_lijst (user_id, name) VALUES (:user_id, :name)");
+    $stmt->execute([':user_id' => $userId, ':name' => $naam]);
+}
+
+function insertTaak($pdo, $userId, $title, $lijstId, $priority) {
+    $stmt = $pdo->prepare("INSERT INTO todos (user_id, title, lijst_id, priority) VALUES (:user_id, :title, :lijst_id, :priority)");
+    $stmt->execute([':user_id' => $userId, ':title' => $title, ':lijst_id' => $lijstId, ':priority' => $priority]);
+}
+
 $error = '';
 $success = '';
 
-// ✅ POST-handling
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Nieuwe lijst toevoegen
-    if (isset($_POST['submit_lijst'], $_POST['nieuwe_lijst'])) {
-        $nieuweLijstNaam = trim($_POST['nieuwe_lijst']);
-        if (!empty($nieuweLijstNaam)) {
-            $stmt = $pdo->prepare("INSERT INTO user_lijst (user_id, name) VALUES (:user_id, :name)");
-            $stmt->execute([':user_id' => $userId, ':name' => $nieuweLijstNaam]);
-            $success = "Lijst toegevoegd!";
-        }
-    }
-
-    // Nieuwe taak toevoegen
-    if (isset($_POST['title'], $_POST['lijst_id'], $_POST['priority']) && empty($_POST['submit_lijst'])) {
-        $title = trim($_POST['title']);
-        $lijstId = (int)$_POST['lijst_id'];
-        $priority = $_POST['priority'];
-
-        if (!empty($title) && in_array($priority, ['laag', 'gemiddeld', 'hoog'])) {
-            $stmt = $pdo->prepare("INSERT INTO todos (user_id, title, lijst_id, priority) 
-                                   VALUES (:user_id, :title, :lijst_id, :priority)");
-            $stmt->execute([
-                ':user_id' => $userId,
-                ':title' => $title,
-                ':lijst_id' => $lijstId,
-                ':priority' => $priority
-            ]);
-        } else {
-            $error = "Titel en prioriteit zijn verplicht.";
-        }
+    if (!empty($_POST['submit_lijst']) && !empty($_POST['nieuwe_lijst'])) {
+        insertLijst($pdo, $userId, trim($_POST['nieuwe_lijst']));
+        $success = "Lijst toegevoegd!";
+    } elseif (!empty($_POST['title']) && !empty($_POST['lijst_id']) && in_array($_POST['priority'], ['laag', 'gemiddeld', 'hoog'])) {
+        insertTaak($pdo, $userId, trim($_POST['title']), (int)$_POST['lijst_id'], $_POST['priority']);
+    } else {
+        $error = "Titel en prioriteit zijn verplicht.";
     }
 }
 
-// ✅ Acties via GET
-if (isset($_GET['done'])) {
-    $stmt = $pdo->prepare("UPDATE todos SET is_done = 1 WHERE id = :id AND user_id = :user_id");
-    $stmt->execute([':id' => (int)$_GET['done'], ':user_id' => $userId]);
-}
-
-if (isset($_GET['delete'])) {
-    $stmt = $pdo->prepare("DELETE FROM todos WHERE id = :id AND user_id = :user_id");
-    $stmt->execute([':id' => (int)$_GET['delete'], ':user_id' => $userId]);
-}
-
-// ✅ Lijsten en taken ophalen
-$lijsten = $pdo->query("SELECT * FROM lijst ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+$lijsten = $pdo->query("SELECT * FROM lijst ORDER BY name ASC")->fetchAll();
 
 $stmt = $pdo->prepare("SELECT * FROM user_lijst WHERE user_id = :user_id ORDER BY name ASC");
 $stmt->execute([':user_id' => $userId]);
-$eigenLijsten = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$eigenLijsten = $stmt->fetchAll();
 
 $stmt = $pdo->prepare("SELECT * FROM todos WHERE user_id = :user_id ORDER BY created_at DESC");
 $stmt->execute([':user_id' => $userId]);
-$todos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$todos = $stmt->fetchAll();
 ?>
 
 <!DOCTYPE html>
@@ -85,7 +61,6 @@ $todos = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <h3>📝 Nieuwe taak toevoegen</h3>
     <form method="post">
         <input type="text" name="title" placeholder="Wat moet je doen?" required>
-
         <select name="lijst_id" required>
             <option value="">-- Kies een lijst --</option>
             <optgroup label="📁 Standaard lijsten">
@@ -99,14 +74,12 @@ $todos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <?php endforeach; ?>
             </optgroup>
         </select>
-
         <select name="priority" required>
             <option value="">-- Kies prioriteit --</option>
             <option value="laag">⬇️ Laag</option>
             <option value="gemiddeld">➡️ Gemiddeld</option>
             <option value="hoog">⬆️ Hoog</option>
         </select>
-
         <button class="formulier" type="submit">➕ Taak toevoegen</button>
     </form>
 
@@ -116,11 +89,8 @@ $todos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <button type="submit" name="submit_lijst">➕ Lijst toevoegen</button>
     </form>
 
-    <?php if ($error): ?>
-        <p class="error"><?= htmlspecialchars($error) ?></p>
-    <?php elseif ($success): ?>
-        <p class="success"><?= htmlspecialchars($success) ?></p>
-    <?php endif; ?>
+    <?php if ($error): ?><p class="error"><?= htmlspecialchars($error) ?></p><?php endif; ?>
+    <?php if ($success): ?><p class="success"><?= htmlspecialchars($success) ?></p><?php endif; ?>
 
     <ul class="lijst">
         <?php foreach ($todos as $todo): ?>
@@ -129,9 +99,9 @@ $todos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <strong style="margin-left: 12px;">[<?= htmlspecialchars($todo['priority']) ?>]</strong>
                 <span class="acties">
                     <?php if (!$todo['is_done']): ?>
-                        <a href="?done=<?= $todo['id'] ?>" title="Markeer als gedaan">✅</a>
+                        <a href="#" class="markeer-done" data-id="<?= $todo['id'] ?>">✅</a>
                     <?php endif; ?>
-                    <a href="?delete=<?= $todo['id'] ?>" title="Verwijderen" onclick="return confirm('Weet je zeker dat je deze taak wil verwijderen?')">🗑️</a>
+                    <a href="#" class="verwijder-taak" data-id="<?= $todo['id'] ?>">🗑️</a>
                 </span>
             </li>
         <?php endforeach; ?>
@@ -141,5 +111,44 @@ $todos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <a href="logout.php">Uitloggen</a>
     </div>
 </div>
+
+<script>
+document.querySelectorAll('.markeer-done').forEach(btn => {
+    btn.addEventListener('click', e => {
+        e.preventDefault();
+        fetch('markeren_verwijderen.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'done', id: btn.dataset.id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                btn.closest('.item').classList.add('done');
+                btn.remove();
+            }
+        });
+    });
+});
+
+document.querySelectorAll('.verwijder-taak').forEach(btn => {
+    btn.addEventListener('click', e => {
+        e.preventDefault();
+        if (!confirm("Weet je zeker dat je deze taak wil verwijderen?")) return;
+        fetch('markeren_verwijderen.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete', id: btn.dataset.id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                btn.closest('.item').remove();
+            }
+        });
+    });
+});
+</script>
+
 </body>
 </html>

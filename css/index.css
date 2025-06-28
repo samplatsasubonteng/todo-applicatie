@@ -18,20 +18,19 @@ body {
 }
 
 /* Titels en tekst */
-h2 {
+h2, h3 {
     color: #333;
+}
+h2 {
     margin-bottom: 10px;
 }
-
+h3 {
+    margin-top: 30px;
+}
 .email {
     font-size: 0.95rem;
     margin-bottom: 20px;
     color: #555;
-}
-
-h3 {
-    margin-top: 30px;
-    color: #333;
 }
 
 /* Formulieren */
@@ -44,22 +43,16 @@ form.zelfGemaakt {
 }
 
 input[type="text"],
-select.dropdown-lijst {
+select {
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 6px;
     font-size: 1rem;
 }
 
-/* Select dropdown */
-select.dropdown-lijst {
-    background-color: #fff;
-    color: #333;
-}
-
 /* Knoppen */
-button[type="submit"],
-button {
+button,
+button[type="submit"] {
     background-color: #3498db;
     color: white;
     padding: 10px 16px;
@@ -69,9 +62,8 @@ button {
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
-
-button[type="submit"]:hover,
-button:hover {
+button:hover,
+button[type="submit"]:hover {
     background-color: #2980b9;
 }
 
@@ -80,7 +72,6 @@ button:hover {
     color: green;
     font-weight: bold;
 }
-
 .error {
     color: red;
     font-weight: bold;
@@ -92,7 +83,6 @@ button:hover {
     padding: 0;
     margin: 0;
 }
-
 .item {
     background-color: #f9f9f9;
     border: 1px solid #ddd;
@@ -104,18 +94,36 @@ button:hover {
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    position: relative;
+    flex-wrap: wrap;
 }
-
-/* Voltooide taak */
 .item.done {
-    background-color: #e0e0e0;
-    text-decoration: line-through;
-    color: #666;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+    text-decoration: none;
+}
+.item.done::after {
+    content: "✅ Voltooid";
+    position: absolute;
+    top: 15px;
+    right: 50px;
+    font-size: 0.9rem;
+    background-color: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-weight: bold;
 }
 
-/* Actieknoppen bij items */
+/* Actieknoppen */
+.item .acties {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
 .item .acties a {
-    margin-left: 10px;
     text-decoration: none;
     font-size: 1.2rem;
 }
@@ -124,13 +132,11 @@ button:hover {
 .logout {
     margin-top: 30px;
 }
-
 .logout a {
     color: #e74c3c;
     text-decoration: none;
     font-weight: bold;
 }
-
 .logout a:hover {
     text-decoration: underline;
 }
