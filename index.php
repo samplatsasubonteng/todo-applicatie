@@ -41,7 +41,17 @@ $stmt = $pdo->prepare("SELECT * FROM user_lijst WHERE user_id = :user_id ORDER B
 $stmt->execute([':user_id' => $userId]);
 $eigenLijsten = $stmt->fetchAll();
 
-$stmt = $pdo->prepare("SELECT * FROM todos WHERE user_id = :user_id ORDER BY created_at DESC");
+$stmt = $pdo->prepare("
+    SELECT * FROM todos 
+    WHERE user_id = :user_id 
+    ORDER BY 
+        CASE priority
+            WHEN 'hoog' THEN 1
+            WHEN 'gemiddeld' THEN 2
+            WHEN 'laag' THEN 3
+        END,
+        created_at DESC
+");
 $stmt->execute([':user_id' => $userId]);
 $todos = $stmt->fetchAll();
 ?>
@@ -76,9 +86,9 @@ $todos = $stmt->fetchAll();
         </select>
         <select name="priority" required>
             <option value="">-- Kies prioriteit --</option>
-            <option value="laag">⬇️ Laag</option>
-            <option value="gemiddeld">➡️ Gemiddeld</option>
-            <option value="hoog">⬆️ Hoog</option>
+            <option value="laag">Laag</option>
+            <option value="gemiddeld"> Gemiddeld</option>
+            <option value="hoog"> Hoog</option>
         </select>
         <button class="formulier" type="submit">➕ Taak toevoegen</button>
     </form>
