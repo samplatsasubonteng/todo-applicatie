@@ -25,7 +25,7 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!empty($_POST['submit_lijst']) && !empty($_POST['nieuwe_lijst'])) {
+    if (isset($_POST['submit_lijst']) && !empty($_POST['nieuwe_lijst'])) {
         insertLijst($pdo, $userId, trim($_POST['nieuwe_lijst']));
         $success = "Lijst toegevoegd!";
     } elseif (!empty($_POST['title']) && !empty($_POST['lijst_id']) && in_array($_POST['priority'], ['laag', 'gemiddeld', 'hoog'])) {
@@ -62,6 +62,16 @@ $todos = $stmt->fetchAll();
     <meta charset="UTF-8">
     <title>Homepagina</title>
     <link rel="stylesheet" href="css/index.css">
+    <style>
+        .titel-link {
+            text-decoration: none;
+            color: inherit;
+            font-weight: bold;
+        }
+        .titel-link:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
 <div class="alles">
@@ -87,15 +97,15 @@ $todos = $stmt->fetchAll();
         <select name="priority" required>
             <option value="">-- Kies prioriteit --</option>
             <option value="laag">Laag</option>
-            <option value="gemiddeld"> Gemiddeld</option>
-            <option value="hoog"> Hoog</option>
+            <option value="gemiddeld">Gemiddeld</option>
+            <option value="hoog">Hoog</option>
         </select>
-        <button class="formulier" type="submit">➕ Taak toevoegen</button>
+        <button type="submit">➕ Taak toevoegen</button>
     </form>
 
     <h3>📂 Nieuwe lijst aanmaken</h3>
-    <form method="post" class="zelfGemaakt">
-        <input type="text" name="nieuwe_lijst" placeholder="Bijv. Vakantie plannen..." required>
+    <form method="post">
+        <input type="text" name="nieuwe_lijst" placeholder="Bijv. Werk, School,..." required>
         <button type="submit" name="submit_lijst">➕ Lijst toevoegen</button>
     </form>
 
@@ -105,7 +115,9 @@ $todos = $stmt->fetchAll();
     <ul class="lijst">
         <?php foreach ($todos as $todo): ?>
             <li class="item <?= $todo['is_done'] ? 'done' : '' ?>">
-                <?= htmlspecialchars($todo['title']) ?>
+                <a href="item.php?id=<?= $todo['id'] ?>" class="titel-link">
+                    <?= htmlspecialchars($todo['title']) ?>
+                </a>
                 <strong style="margin-left: 12px;">[<?= htmlspecialchars($todo['priority']) ?>]</strong>
                 <span class="acties">
                     <?php if (!$todo['is_done']): ?>
