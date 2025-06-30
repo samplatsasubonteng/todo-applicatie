@@ -11,39 +11,33 @@ $db = new Database();
 $pdo = $db->connect();
 $userId = $_SESSION['user_id'];
 
-function insertLijst($pdo, $userId, $naam) {
-    $stmt = $pdo->prepare("INSERT INTO user_lijst (user_id, name) VALUES (:user_id, :name)");
-    $stmt->execute([':user_id' => $userId, ':name' => $naam]);
-}
-
-function insertTaak($pdo, $userId, $title, $lijstId, $priority) {
-    $stmt = $pdo->prepare("INSERT INTO todos (user_id, title, lijst_id, priority) VALUES (:user_id, :title, :lijst_id, :priority)");
-    $stmt->execute([':user_id' => $userId, ':title' => $title, ':lijst_id' => $lijstId, ':priority' => $priority]);
-}
-
-$error = '';
-$success = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['submit_lijst']) && !empty($_POST['nieuwe_lijst'])) {
-        insertLijst($pdo, $userId, trim($_POST['nieuwe_lijst']));
+    if (!empty($_POST['nieuwe_lijst'])) {
+        $stmt = $pdo->prepare("INSERT INTO user_lijst (user_id, name) VALUES (:user_id, :name)");
+        $stmt->execute([':user_id' => $userId, ':name' => trim($_POST['nieuwe_lijst'])]);
         $success = "Lijst toegevoegd!";
     } elseif (!empty($_POST['title']) && !empty($_POST['lijst_id']) && in_array($_POST['priority'], ['laag', 'gemiddeld', 'hoog'])) {
-        insertTaak($pdo, $userId, trim($_POST['title']), (int)$_POST['lijst_id'], $_POST['priority']);
+        $stmt = $pdo->prepare("INSERT INTO todos (user_id, title, lijst_id, priority) VALUES (:user_id, :title, :lijst_id, :priority)");
+        $stmt->execute([
+            ':user_id' => $userId,
+            ':title' => trim($_POST['title']),
+            ':lijst_id' => (int)$_POST['lijst_id'],
+            ':priority' => $_POST['priority']
+        ]);
     } else {
         $error = "Titel en prioriteit zijn verplicht.";
     }
 }
 
-$lijsten = $pdo->query("SELECT * FROM lijst ORDER BY name ASC")->fetchAll();
-
+$standaardLijsten = $pdo->query("SELECT * FROM lijst ORDER BY name ASC")->fetchAll();
 $stmt = $pdo->prepare("SELECT * FROM user_lijst WHERE user_id = :user_id ORDER BY name ASC");
 $stmt->execute([':user_id' => $userId]);
-$eigenLijsten = $stmt->fetchAll();
+$persoonlijkeLijsten = $stmt->fetchAll();
 
-$stmt = $pdo->prepare("
+$query = "
     SELECT * FROM todos 
-    WHERE user_id = :user_id 
+    WHERE user_id = :user_id " .
+    (isset($_GET['lijst_id']) && is_numeric($_GET['lijst_id']) ? "AND lijst_id = :lijst_id" : "") . "
     ORDER BY 
         CASE priority
             WHEN 'hoog' THEN 1
@@ -51,8 +45,13 @@ $stmt = $pdo->prepare("
             WHEN 'laag' THEN 3
         END,
         created_at DESC
-");
-$stmt->execute([':user_id' => $userId]);
+";
+$stmt = $pdo->prepare($query);
+$params = [':user_id' => $userId];
+if (isset($_GET['lijst_id']) && is_numeric($_GET['lijst_id'])) {
+    $params[':lijst_id'] = (int)$_GET['lijst_id'];
+}
+$stmt->execute($params);
 $todos = $stmt->fetchAll();
 ?>
 
@@ -62,16 +61,6 @@ $todos = $stmt->fetchAll();
     <meta charset="UTF-8">
     <title>Homepagina</title>
     <link rel="stylesheet" href="css/index.css">
-    <style>
-        .titel-link {
-            text-decoration: none;
-            color: inherit;
-            font-weight: bold;
-        }
-        .titel-link:hover {
-            text-decoration: underline;
-        }
-    </style>
 </head>
 <body>
 <div class="alles">
@@ -84,12 +73,12 @@ $todos = $stmt->fetchAll();
         <select name="lijst_id" required>
             <option value="">-- Kies een lijst --</option>
             <optgroup label="📁 Standaard lijsten">
-                <?php foreach ($lijsten as $lijst): ?>
+                <?php foreach ($standaardLijsten as $lijst): ?>
                     <option value="<?= $lijst['id'] ?>"><?= htmlspecialchars($lijst['name']) ?></option>
                 <?php endforeach; ?>
             </optgroup>
-            <optgroup label="👤 Jouw lijsten">
-                <?php foreach ($eigenLijsten as $lijst): ?>
+            <optgroup label="📝 Jouw lijsten">
+                <?php foreach ($persoonlijkeLijsten as $lijst): ?>
                     <option value="<?= $lijst['id'] ?>">📝 <?= htmlspecialchars($lijst['name']) ?></option>
                 <?php endforeach; ?>
             </optgroup>
@@ -109,8 +98,29 @@ $todos = $stmt->fetchAll();
         <button type="submit" name="submit_lijst">➕ Lijst toevoegen</button>
     </form>
 
-    <?php if ($error): ?><p class="error"><?= htmlspecialchars($error) ?></p><?php endif; ?>
-    <?php if ($success): ?><p class="success"><?= htmlspecialchars($success) ?></p><?php endif; ?>
+    <?php if (!empty($error)): ?><p class="error"><?= htmlspecialchars($error) ?></p><?php endif; ?>
+    <?php if (!empty($success)): ?><p class="success"><?= htmlspecialchars($success) ?></p><?php endif; ?>
+
+    <h3>📋 Filter op lijst</h3>
+    <form method="get">
+        <select name="lijst_id" onchange="this.form.submit()" class="filter-dropdown">
+            <option value="">🔁 Alle taken</option>
+            <optgroup label="📁 Standaard lijsten">
+                <?php foreach ($standaardLijsten as $lijst): ?>
+                    <option value="<?= $lijst['id'] ?>" <?= ($_GET['lijst_id'] ?? '') == $lijst['id'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($lijst['name']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </optgroup>
+            <optgroup label="📝 Jouw lijsten">
+                <?php foreach ($persoonlijkeLijsten as $lijst): ?>
+                    <option value="<?= $lijst['id'] ?>" <?= ($_GET['lijst_id'] ?? '') == $lijst['id'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($lijst['name']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </optgroup>
+        </select>
+    </form>
 
     <ul class="lijst">
         <?php foreach ($todos as $todo): ?>
@@ -118,7 +128,7 @@ $todos = $stmt->fetchAll();
                 <a href="item.php?id=<?= $todo['id'] ?>" class="titel-link">
                     <?= htmlspecialchars($todo['title']) ?>
                 </a>
-                <strong style="margin-left: 12px;">[<?= htmlspecialchars($todo['priority']) ?>]</strong>
+                <strong class="priority">[<?= htmlspecialchars($todo['priority']) ?>]</strong>
                 <span class="acties">
                     <?php if (!$todo['is_done']): ?>
                         <a href="#" class="markeer-done" data-id="<?= $todo['id'] ?>">✅</a>
@@ -129,9 +139,7 @@ $todos = $stmt->fetchAll();
         <?php endforeach; ?>
     </ul>
 
-    <div class="logout">
-        <a href="logout.php">Uitloggen</a>
-    </div>
+    <div class="logout"><a href="logout.php">Uitloggen</a></div>
 </div>
 
 <script>
@@ -142,9 +150,7 @@ document.querySelectorAll('.markeer-done').forEach(btn => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'done', id: btn.dataset.id })
-        })
-        .then(res => res.json())
-        .then(data => {
+        }).then(res => res.json()).then(data => {
             if (data.status === 'success') {
                 btn.closest('.item').classList.add('done');
                 btn.remove();
@@ -161,9 +167,7 @@ document.querySelectorAll('.verwijder-taak').forEach(btn => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ action: 'delete', id: btn.dataset.id })
-        })
-        .then(res => res.json())
-        .then(data => {
+        }).then(res => res.json()).then(data => {
             if (data.status === 'success') {
                 btn.closest('.item').remove();
             }
@@ -171,6 +175,5 @@ document.querySelectorAll('.verwijder-taak').forEach(btn => {
     });
 });
 </script>
-
 </body>
 </html>
