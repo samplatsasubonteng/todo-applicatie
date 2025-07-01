@@ -1,5 +1,6 @@
 <?php
 require_once 'database.php';
+require_once 'classes/gebruiker.php'; // ✅ Klasse importeren
 
 $db = new Database();
 $pdo = $db->connect();
@@ -8,11 +9,11 @@ $success = '';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email'] ?? '';
-    $password = $_POST['password'] ?? '';
-    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
     try {
+        $gebruiker = new User($_POST['email'], $_POST['password']);
+        $email = $gebruiker->getEmail();
+        $hashedPassword = $gebruiker->getHashedPassword();
+
         $stmt = $pdo->prepare('INSERT INTO user (email, password) VALUES (:email, :password)');
         $stmt->bindValue(':email', $email);
         $stmt->bindValue(':password', $hashedPassword);
@@ -20,6 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmt->execute()) {
             $success = "Registratie gelukt! Je kan nu <a href='login.php'>inloggen</a>.";
         }
+    } catch (Exception $e) {
+        $error = $e->getMessage();
     } catch (PDOException $e) {
         $error = "Registratie mislukt: mogelijk bestaat dit e-mailadres al.";
     }

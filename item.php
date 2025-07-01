@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once 'database.php';
+require_once 'classes/comment.php';
 
 if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     header('Location: login.php');
@@ -27,11 +28,15 @@ if (!$todo) {
     exit;
 }
 
-// ✅ Comment toevoegen
+// ✅ Comment toevoegen via OOP
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['inhoud'])) {
-    $inhoud = trim($_POST['inhoud']);
-    $stmt = $pdo->prepare("INSERT INTO comments (todo_id, user_id, inhoud) VALUES (:todo_id, :user_id, :inhoud)");
-    $stmt->execute([':todo_id' => $todoId, ':user_id' => $userId, ':inhoud' => $inhoud]);
+    try {
+        $inhoud = trim($_POST['inhoud']);
+        $comment = new Comment($todoId, $userId, $inhoud);
+        $comment->save($pdo);
+    } catch (Exception $e) {
+        echo "Fout bij toevoegen van commentaar: " . htmlspecialchars($e->getMessage());
+    }
 }
 
 // ✅ Haal alle comments op
@@ -39,6 +44,7 @@ $stmt = $pdo->prepare("SELECT c.*, u.email FROM comments c JOIN user u ON c.user
 $stmt->execute([':todo_id' => $todoId]);
 $comments = $stmt->fetchAll();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="nl">
