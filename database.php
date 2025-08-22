@@ -1,10 +1,9 @@
 <?php
 class Database {
-    private $host = 'maglev.proxy.rlwy.net';
-    private $port = 48028;
-    private $dbname = 'railway';
-    private $username = 'root';
-    private $password = 'zBtImbWqqbjTqpcreTzBDcBvzAhLEJxD';
+    private $host = '127.0.0.1';         
+    private $port = 3306;                
+    private $dbname = 'todo';           
+    private $password = '';             
     private $conn;
 
     public function connect() {
