@@ -1,4 +1,3 @@
-/* Algemene opmaak */
 body {
     font-family: Arial, sans-serif;
     background-color: #f2f2f2;
@@ -6,7 +5,7 @@ body {
     padding: 0;
 }
 
-/* Container */
+
 .alles {
     max-width: 500px;
     margin: 60px auto;
@@ -17,7 +16,7 @@ body {
     text-align: center;
 }
 
-/* Titels en tekst */
+
 h2, h3 {
     color: #2c3e50;
 }
@@ -33,7 +32,7 @@ h3 {
     color: #666;
 }
 
-/* Formulieren */
+
 form {
     display: flex;
     flex-direction: column;
@@ -55,7 +54,7 @@ select:focus {
     border-color: #3498db;
 }
 
-/* Knoppen */
+
 button {
     background-color: #3498db;
     color: #fff;
@@ -70,7 +69,7 @@ button:hover {
     background-color: #2980b9;
 }
 
-/* Feedback berichten */
+
 .success {
     color: #27ae60;
     font-weight: bold;
@@ -80,7 +79,7 @@ button:hover {
     font-weight: bold;
 }
 
-/* Todo-lijst */
+
 .lijst {
     list-style: none;
     padding: 0;
@@ -117,7 +116,7 @@ button:hover {
     border-radius: 4px;
 }
 
-/* Actieknoppen */
+
 .item .acties {
     margin-left: auto;
     display: flex;
@@ -133,7 +132,7 @@ button:hover {
     transform: scale(1.1);
 }
 
-/* Logout */
+
 .logout {
     margin-top: 30px;
 }
@@ -146,7 +145,7 @@ button:hover {
     text-decoration: underline;
 }
 
-/* Dropdown filterstijl */
+
 .filter-dropdown {
     padding: 12px;
     font-size: 1rem;
@@ -159,7 +158,7 @@ button:hover {
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
-/* Linkstijl voor taken */
+
 .titel-link {
     text-decoration: none;
     color: inherit;

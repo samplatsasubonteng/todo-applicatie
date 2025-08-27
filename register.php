@@ -1,6 +1,6 @@
 <?php
 require_once 'database.php';
-require_once 'classes/gebruiker.php'; // ✅ Klasse importeren
+require_once 'classes/gebruiker.php'; 
 
 $db = new Database();
 $pdo = $db->connect();
@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindValue(':password', $hashedPassword);
 
         if ($stmt->execute()) {
-            $success = "Registratie gelukt! Je kan nu <a href='login.php'>inloggen</a>.";
+            $success = "Registratie gelukt! Je kan nu <a href='index.php'>inloggen</a>.";
         }
     } catch (Exception $e) {
         $error = $e->getMessage();
@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
         <div class="aanmelden">
-            Heb je al een account? <a href="login.php">Inloggen</a>
+            Heb je al een account? <a href="index.php">Inloggen</a>
         </div>
     </div>
 </body>

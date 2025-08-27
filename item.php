@@ -4,7 +4,7 @@ require_once 'database.php';
 require_once 'classes/comment.php';
 
 if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
-    header('Location: login.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -18,7 +18,6 @@ $pdo = $db->connect();
 $userId = $_SESSION['user_id'];
 $todoId = (int)$_GET['id'];
 
-// ✅ Haal taak op
 $stmt = $pdo->prepare("SELECT * FROM todos WHERE id = :id AND user_id = :user_id");
 $stmt->execute([':id' => $todoId, ':user_id' => $userId]);
 $todo = $stmt->fetch();
@@ -28,7 +27,6 @@ if (!$todo) {
     exit;
 }
 
-// ✅ Comment toevoegen via OOP
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['inhoud'])) {
     try {
         $inhoud = trim($_POST['inhoud']);
@@ -39,7 +37,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['inhoud'])) {
     }
 }
 
-// ✅ Haal alle comments op
 $stmt = $pdo->prepare("SELECT c.*, u.email FROM comments c JOIN user u ON c.user_id = u.id WHERE c.todo_id = :todo_id ORDER BY c.created_at DESC");
 $stmt->execute([':todo_id' => $todoId]);
 $comments = $stmt->fetchAll();
@@ -57,7 +54,7 @@ $comments = $stmt->fetchAll();
 <div class="alles">
     <h2>📝 <?= htmlspecialchars($todo['title']) ?> [<?= htmlspecialchars($todo['priority']) ?>]</h2>
     <p><strong>Status:</strong> <?= $todo['is_done'] ? '✅ Voltooid' : '⏳ Nog bezig' ?></p>
-    <p><a href="index.php">⬅️ Terug naar overzicht</a></p>
+    <p><a href="start.php">⬅️ Terug naar overzicht</a></p>
 
     <h3>💬 Commentaren</h3>
     <form method="post">
